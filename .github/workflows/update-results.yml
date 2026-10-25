@@ -2,6 +2,8 @@ name: Update election results
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "3,18,33,48 * * * *"
 
 permissions:
   contents: write
