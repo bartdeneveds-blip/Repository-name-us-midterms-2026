@@ -13,6 +13,10 @@ SENATE_URL = "https://civicapi.org/api/v2/race/87528"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 USER_AGENT = "DS-election-data/1.0 (+https://github.com/)"
 
+# Safety switch: CivicAPI is publishing test results before election night.
+# Keep False until the newsroom deliberately activates live results.
+LIVE_RESULTS_ENABLED = False
+
 MAP_FIELDS = [
     "code", "district", "rating", "zetel", "marge", "democraat", "republikein"
 ]
@@ -90,6 +94,8 @@ def party_group(party):
 
 def determine_status(region):
     candidates = region.get("candidates") or []
+    if not LIVE_RESULTS_ENABLED:
+        return "Nog geen uitslag", None
     winners = [candidate for candidate in candidates if candidate.get("winner")]
     total_votes = sum(int(candidate.get("votes") or 0) for candidate in candidates)
     reporting = float(region.get("percent_reporting") or 0)
