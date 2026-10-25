@@ -33,6 +33,7 @@ SENATE_SEAT_FIELDS = [
     "Democraten in handen",
     "Democraten leiden",
     "Nog geen uitslag",
+    "Andere kandidaten in handen",
     "Andere kandidaten leiden",
     "Andere kandidaten verkozen",
     "Republikeinen leiden",
@@ -280,11 +281,16 @@ def main():
         candidate.get("party"): int(candidate.get("seats") or 0)
         for candidate in senate.get("candidates") or []
     }
+    other_holdovers = sum(
+        seats for party, seats in holdovers.items()
+        if party not in {"Democratic", "Republican"}
+    )
     senate_seats = [{
         "status": "zetels",
         "Democraten in handen": holdovers.get("Democratic", 0) + senate_counts["D_won"],
         "Democraten leiden": senate_counts["D_leads"],
         "Nog geen uitslag": senate_counts["unreported"],
+        "Andere kandidaten in handen": other_holdovers,
         "Andere kandidaten leiden": senate_counts["O_leads"],
         "Andere kandidaten verkozen": senate_counts["O_won"],
         "Republikeinen leiden": senate_counts["R_leads"],
