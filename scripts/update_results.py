@@ -33,7 +33,6 @@ SENATE_SEAT_FIELDS = [
     "Democraten in handen",
     "Democraten leiden",
     "Nog geen uitslag",
-    "Andere kandidaten in handen",
     "Andere kandidaten leiden",
     "Andere kandidaten verkozen",
     "Republikeinen leiden",
@@ -277,20 +276,15 @@ def main():
     }]
 
     senate_counts = count_races(senate["region_results"])
-    holdovers = {
-        candidate.get("party"): int(candidate.get("seats") or 0)
-        for candidate in senate.get("candidates") or []
-    }
-    other_holdovers = sum(
-        seats for party, seats in holdovers.items()
-        if party not in {"Democratic", "Republican"}
-    )
+    # The 35 races in the national CivicAPI feed are the seats being contested.
+    # The remaining 65 holdover seats are fixed for this 2026 workflow.
+    # Do not use the changing top-level `seats` values from CivicAPI here.
+    holdovers = {"Democratic": 34, "Republican": 31}
     senate_seats = [{
         "status": "zetels",
         "Democraten in handen": holdovers.get("Democratic", 0) + senate_counts["D_won"],
         "Democraten leiden": senate_counts["D_leads"],
         "Nog geen uitslag": senate_counts["unreported"],
-        "Andere kandidaten in handen": other_holdovers,
         "Andere kandidaten leiden": senate_counts["O_leads"],
         "Andere kandidaten verkozen": senate_counts["O_won"],
         "Republikeinen leiden": senate_counts["R_leads"],
