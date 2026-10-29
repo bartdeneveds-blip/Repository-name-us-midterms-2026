@@ -10,6 +10,7 @@ from pathlib import Path
 
 HOUSE_URL = "https://civicapi.org/api/v2/race/87524"
 SENATE_URL = "https://civicapi.org/api/v2/race/87528"
+GOVERNORS_URL = "https://civicapi.org/api/v2/race/87535"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 USER_AGENT = "DS-election-data/1.0 (+https://github.com/)"
 
@@ -33,6 +34,17 @@ HOUSE_SEAT_FIELDS = [
 ]
 
 SENATE_SEAT_FIELDS = [
+    "status",
+    "Democraten in handen",
+    "Democraten leiden",
+    "Nog geen uitslag",
+    "Andere kandidaten leiden",
+    "Andere kandidaten verkozen",
+    "Republikeinen leiden",
+    "Republikeinen in handen",
+]
+
+GOVERNORS_SEAT_FIELDS = [
     "status",
     "Democraten in handen",
     "Democraten leiden",
@@ -240,6 +252,7 @@ def main():
 
     house = fetch_json(HOUSE_URL)
     senate = fetch_json(SENATE_URL)
+    governors = fetch_json(GOVERNORS_URL)
     validate_source(house, senate)
 
     house_regions = {house_code(code): region for code, region in house["region_results"].items()}
@@ -297,15 +310,50 @@ def main():
         "Republikeinen in handen": holdovers.get("Republican", 0) + senate_counts["R_won"],
     }]
 
+    governor_counts = count_races(governors["region_results"])
+
+governor_holdovers = {
+    "Democratic": 6,
+    "Republican": 8,
+}
+
+governors_seats = [{
+    "status": "posten",
+    "Democraten in handen":
+        governor_holdovers["Democratic"] + governor_counts["D_won"],
+    "Democraten leiden":
+        governor_counts["D_leads"],
+    "Nog geen uitslag":
+        governor_counts["unreported"],
+    "Andere kandidaten leiden":
+        governor_counts["O_leads"],
+    "Andere kandidaten verkozen":
+        governor_counts["O_won"],
+    "Republikeinen leiden":
+        governor_counts["R_leads"],
+    "Republikeinen in handen":
+        governor_holdovers["Republican"] + governor_counts["R_won"],
+}]
+
     if sum(int(house_seats[0][field]) for field in HOUSE_SEAT_FIELDS[1:]) != 435:
         raise RuntimeError("De House-zetelgrafiek telt niet op tot 435")
     if sum(int(senate_seats[0][field]) for field in SENATE_SEAT_FIELDS[1:]) != 100:
         raise RuntimeError("De Senate-zetelgrafiek telt niet op tot 100")
+        if sum(
+    int(governors_seats[0][field])
+    for field in GOVERNORS_SEAT_FIELDS[1:]
+) != 50:
+    raise RuntimeError("De gouverneursgrafiek telt niet op tot 50")
 
     write_csv(DATA_DIR / "house.csv", MAP_FIELDS, house_rows)
     write_csv(DATA_DIR / "senate.csv", MAP_FIELDS, senate_rows)
     write_csv(DATA_DIR / "house_seats.csv", HOUSE_SEAT_FIELDS, house_seats)
     write_csv(DATA_DIR / "senate_seats.csv", SENATE_SEAT_FIELDS, senate_seats)
+write_csv(
+    DATA_DIR / "governors_seats.csv",
+    GOVERNORS_SEAT_FIELDS,
+    governors_seats,
+)
 
     print("Vier CSV-bestanden zijn bijgewerkt.")
     print(f"House: {len(house_rows)} districten; zetels: {house_seats[0]}")
