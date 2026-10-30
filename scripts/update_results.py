@@ -6,7 +6,7 @@ HOUSE_URL = "https://civicapi.org/api/v2/race/87524"
 SENATE_URL = "https://civicapi.org/api/v2/race/87528"
 GOVERNORS_URL = "https://civicapi.org/api/v2/race/87535"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-LIVE_RESULTS_ENABLED = False
+LIVE_RESULTS_ENABLED = True
 USER_AGENT = "DS-election-data/1.0"
 
 MAP_FIELDS = ["code", "district", "rating", "zetel", "marge", "democraat", "republikein"]
