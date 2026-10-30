@@ -141,38 +141,39 @@ def main():
 
     house, senate, governors = fetch(HOUSE_URL), fetch(SENATE_URL), fetch(GOVERNORS_URL)
     for name, source in [
-    ("House", house),
-    ("Senate", senate),
-    ("Governors", governors),
-]:
-    regions = source.get("region_results") or {}
-    races_with_votes = 0
-    races_reporting = 0
-    races_with_winner = 0
-    races_with_percentages = 0
+        ("House", house),
+        ("Senate", senate),
+        ("Governors", governors),
+    ]:
+        regions = source.get("region_results") or {}
+        races_with_votes = 0
+        races_reporting = 0
+        races_with_winner = 0
+        races_with_percentages = 0
 
-    for region in regions.values():
-        candidates = region.get("candidates") or []
+        for region in regions.values():
+            candidates = region.get("candidates") or []
 
-        if any(int(candidate.get("votes") or 0) > 0 for candidate in candidates):
-            races_with_votes += 1
+            if any(int(candidate.get("votes") or 0) > 0 for candidate in candidates):
+                races_with_votes += 1
 
-        if float(region.get("percent_reporting") or 0) > 0:
-            races_reporting += 1
+            if float(region.get("percent_reporting") or 0) > 0:
+                races_reporting += 1
 
-        if any(candidate.get("winner") for candidate in candidates):
-            races_with_winner += 1
+            if any(candidate.get("winner") for candidate in candidates):
+                races_with_winner += 1
 
-        if any(float(candidate.get("percent") or 0) > 0 for candidate in candidates):
-            races_with_percentages += 1
+            if any(float(candidate.get("percent") or 0) > 0 for candidate in candidates):
+                races_with_percentages += 1
 
-    print(
-        f"{name}: {len(regions)} races, "
-        f"{races_with_votes} met stemmen, "
-        f"{races_reporting} met rapportering, "
-        f"{races_with_winner} met winnaar, "
-        f"{races_with_percentages} met percentages"
-    )
+        print(
+            f"{name}: {len(regions)} races, "
+            f"{races_with_votes} met stemmen, "
+            f"{races_reporting} met rapportering, "
+            f"{races_with_winner} met winnaar, "
+            f"{races_with_percentages} met percentages"
+        )
+
     validate(house, senate, governors)
 
     house_regions = {house_code(code): region for code, region in house["region_results"].items()}
