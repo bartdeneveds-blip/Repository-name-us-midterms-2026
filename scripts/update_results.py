@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, json, re, sys, urllib.request
+import csv, json, re, sys, time, urllib.request import urllib.error
 from pathlib import Path
 
 HOUSE_URL = "https://civicapi.org/api/v2/race/87524"
@@ -14,10 +14,41 @@ HOUSE_FIELDS = ["status", "Democraten verkozen", "Democraten leiden", "Nog geen 
 POWER_FIELDS = ["status", "Democraten in handen", "Democraten leiden", "Nog geen uitslag", "Andere kandidaten leiden", "Andere kandidaten verkozen", "Republikeinen leiden", "Republikeinen in handen"]
 
 
-def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=60) as response:
-        return json.load(response)
+def fetch(url, attempts=4):
+    for attempt in range(1, attempts + 1):
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": USER_AGENT}
+            )
+            with urllib.request.urlopen(req, timeout=60) as response:
+                return json.load(response)
+
+        except urllib.error.HTTPError as error:
+            retryable = error.code in {429, 500, 502, 503, 504}
+
+            if not retryable or attempt == attempts:
+                raise
+
+            wait_seconds = 15 * attempt
+            print(
+                f"HTTP {error.code} bij CivicAPI. "
+                f"Nieuwe poging {attempt + 1}/{attempts} "
+                f"over {wait_seconds} seconden."
+            )
+            time.sleep(wait_seconds)
+
+        except (urllib.error.URLError, TimeoutError) as error:
+            if attempt == attempts:
+                raise
+
+            wait_seconds = 15 * attempt
+            print(
+                f"Verbindingsfout bij CivicAPI: {error}. "
+                f"Nieuwe poging {attempt + 1}/{attempts} "
+                f"over {wait_seconds} seconden."
+            )
+            time.sleep(wait_seconds)
 
 
 def clean(value):
