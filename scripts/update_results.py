@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import csv, json, re, sys, time, urllib.request import urllib.error
+import csv, json, re, sys, time, urllib.request
+import urllib.error
 from pathlib import Path
 
 HOUSE_URL = "https://civicapi.org/api/v2/race/87524"
